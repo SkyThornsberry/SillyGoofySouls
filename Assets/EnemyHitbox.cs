@@ -12,17 +12,31 @@ public class EnemyHitbox : MonoBehaviour
     public float enemyHealth;
     float tempDmg;
     string tempType;
+    bool invincible;
+    float iFrames = .5f;
+
     private void OnTriggerEnter(Collider other)
     {
 
         Debug.Log("triggered");
-        if (other.tag == "playerHurtbox")
+        if (other.tag == "playerHurtbox" & !invincible)
         {
             tempDmg = other.GetComponent<PlayerHurtbox>().dmg;
             tempType = other.GetComponent<PlayerHurtbox>().type;
+            iFrames = other.GetComponent<PlayerHurtbox>().iFrames;
             Debug.Log("hit");
             Enemy.EnemyHurt(tempDmg, tempType);
+            invincible = true;
+            Invoke("setNotInvincible", iFrames);
         }
 
     }
+
+    void setNotInvincible()
+    {
+        invincible = false;
+    }
+
 }
+
+
