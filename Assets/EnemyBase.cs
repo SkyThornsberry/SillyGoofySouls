@@ -8,16 +8,20 @@ public class EnemyBase : MonoBehaviour
 {
     public float[] attackDamage;
     public string[] attackType;
+    public float maxHealth;
     public float health;
     public EnemyType1 enemyType;
     public int curAttack =0;
+    public GameObject healthBar;
+    public GameObject healthLossBar;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         attackDamage = enemyType.DmgVals;
         attackType = enemyType.TypeVals;
-        health =enemyType.health;
+        maxHealth =enemyType.health;
+        health = maxHealth;
     }
 
     // Update is called once per frame
@@ -28,7 +32,22 @@ public class EnemyBase : MonoBehaviour
 
     public void EnemyHurt(float damage, string Type)
     {
-        //health -= damage;
-        Debug.Log("Enemy Hurt: " + damage + ", " + Type); 
+        //damage calcs
+        health -= damage;
+        Debug.Log("Enemy Hurt: " + damage + ", " + Type);
+        updateHealthBar();
+        Invoke("updateHealthLossBar", 2);
+    }
+
+    void updateHealthBar()
+    {
+        //set health bar
+        healthBar.transform.localScale = new Vector3(health * 1f / maxHealth, healthBar.transform.localScale.y, healthBar.transform.localScale.z);
+    }
+
+    void updateHealthLossBar()
+    {
+        //set healthloss bar, the yellow bar behind the read health bar which remains after health is loss to display the amount lost
+        healthLossBar.transform.localScale = new Vector3(health * 1f / maxHealth, healthBar.transform.localScale.y, healthBar.transform.localScale.z);
     }
 }

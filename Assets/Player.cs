@@ -15,8 +15,8 @@ public class Player : MonoBehaviour
     //player stats
     public float Health =1000f;
     public float Stamina=1000f;
-    public float MaxHealth = 200f;
-    public float MaxStamina = 150f;
+    public float MaxHealth = 350;
+    public float MaxStamina = 225;
     public Slider HealthSlider;
     public Slider StaminaSlider;
     public Slider MaxHealthSlider;
