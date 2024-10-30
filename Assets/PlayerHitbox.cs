@@ -1,20 +1,25 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-public class OnTriggerCollider : MonoBehaviour
+public class PlayerHitbox : MonoBehaviour
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     public Player Player;
-    float damage = 50f;
-    string damageType = "physical";
+    float tempDmg;
+    string tempType;
     private void OnTriggerEnter(Collider other)
     {
-
-        Debug.Log("triggered");
-        if (other.tag == "enemy")
+        
+        //Debug.Log("triggered");
+        if (other.tag == "EnemyHurtbox")
         {
-            Debug.Log("hit");
-            Player.playerHurt(damage, damageType);
+
+            tempDmg = other.GetComponent<EnemyHurtbox>().dmg;
+            tempType = other.GetComponent<EnemyHurtbox>().type;
+
+            Debug.Log("Player hurt, " + tempDmg + ", " + tempType);
+            Player.playerHurt(tempDmg, tempType);
+            
         }
 
     }

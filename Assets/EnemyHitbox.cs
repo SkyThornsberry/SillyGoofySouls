@@ -1,23 +1,27 @@
 using UnityEngine;
-
-
+using System.Collections;
+using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
+using Unity.VisualScripting;
+using UnityEngine.UI;
 
 
 public class EnemyHitbox : MonoBehaviour
 {
-    public Player Player;
-    float damage = 50f;
-    string damageType = "physical";
-
+    public EnemyBase Enemy;
     public float enemyHealth;
+    float tempDmg;
+    string tempType;
     private void OnTriggerEnter(Collider other)
     {
 
         Debug.Log("triggered");
-        if (other.tag == "enemy")
+        if (other.tag == "playerHurtbox")
         {
+            tempDmg = other.GetComponent<PlayerHurtbox>().dmg;
+            tempType = other.GetComponent<PlayerHurtbox>().type;
             Debug.Log("hit");
-            Player.playerHurt(damage, damageType);
+            Enemy.EnemyHurt(tempDmg, tempType);
         }
 
     }

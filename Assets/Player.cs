@@ -13,8 +13,8 @@ public class Player : MonoBehaviour
     
 
     //player stats
-    float Health =1000f;
-    float Stamina=1000f;
+    public float Health =1000f;
+    public float Stamina=1000f;
     public float MaxHealth = 200f;
     public float MaxStamina = 150f;
     public Slider HealthSlider;
@@ -214,6 +214,7 @@ public class Player : MonoBehaviour
     void setCurHealth(float curHealth)
     {
         HealthSlider.value = curHealth / 1000f;
+        this.Health = curHealth;
     }
 
     void setCurStam(float curStam)

@@ -1,19 +1,26 @@
 using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
+using Unity.VisualScripting;
+using UnityEngine.UI;
 
-public class Hurtbox : MonoBehaviour
+public class EnemyHurtbox : MonoBehaviour
 {
 
+    public float dmg;
+    public EnemyBase Enemy;
+    public string type;
+    void Update()
+    {
+        dmg = Enemy.attackDamage[Enemy.curAttack];
+        type = Enemy.attackType[Enemy.curAttack];
+    }
 
 
     private void OnTriggerEnter(Collider other)
     {
 
-        Debug.Log("triggered");
-        if (other.tag == "enemy")
-        {
-            Debug.Log("hit");
-            Player.playerHurt(damage, damageType);
-        }
 
     }
 }

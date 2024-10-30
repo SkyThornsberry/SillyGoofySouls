@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class PlayerHurtbox : MonoBehaviour
 {
+
+    public float dmg = 50f;
+    public string type = "physical";
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
