@@ -11,6 +11,7 @@ public class EnemyHurtbox : MonoBehaviour
     public float dmg;
     public EnemyBase Enemy;
     public string type;
+    public float iFrames = .25f;
     void Update()
     {
         dmg = Enemy.attackDamage[Enemy.curAttack];

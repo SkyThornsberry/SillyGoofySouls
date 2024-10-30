@@ -7,21 +7,30 @@ public class PlayerHitbox : MonoBehaviour
     public Player Player;
     float tempDmg;
     string tempType;
+    float iFrames = .5f;
+    bool invincible = false;
     private void OnTriggerEnter(Collider other)
     {
         
         //Debug.Log("triggered");
-        if (other.tag == "EnemyHurtbox")
+        if (other.tag == "EnemyHurtbox" & !invincible)
         {
 
             tempDmg = other.GetComponent<EnemyHurtbox>().dmg;
             tempType = other.GetComponent<EnemyHurtbox>().type;
+            iFrames = other.GetComponent<EnemyHurtbox>().iFrames;
 
             Debug.Log("Player hurt, " + tempDmg + ", " + tempType);
             Player.playerHurt(tempDmg, tempType);
-            
+            invincible = true;
+            Invoke("setNotInvincible", iFrames);
         }
 
+    }
+
+    void setNotInvincible()
+    {
+        invincible = false;
     }
 
 }
