@@ -18,6 +18,8 @@ public class Player : MonoBehaviour
     public float Stamina=1000f;
     public float MaxHealth = 350;
     public float MaxStamina = 225;
+
+    //health/stam bar hud control
     public Slider HealthSlider;
     public Slider StaminaSlider;
     public Slider MaxHealthSlider;
@@ -26,6 +28,8 @@ public class Player : MonoBehaviour
     public Slider StaminaLossSlider;
     Coroutine HealthLossSliderCoroutine;
     Coroutine StaminaLossSliderCoroutine;
+    bool readyforCoroutine = true;
+    public float lossBarDelayTimer = 0f;
 
 
     //movement vars
@@ -65,7 +69,7 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //jump needs to be called from update for whatever reason
+        //jump needs to be called from update since fixedUpdate is bad for taking inputs
         if ((Input.GetKeyDown(KeyCode.Space)))
         {
             Debug.Log("space pressed");
@@ -85,6 +89,8 @@ public class Player : MonoBehaviour
             Debug.Log("mousebuttondowntrue");
             
         }
+
+        lossBarDelayTimerMeth();
 
     }
 
@@ -216,21 +222,23 @@ public class Player : MonoBehaviour
             setCurStam(maxStam);
     }
 
-    void setCurHealth(float curHealth)
+    void setCurHealth(float NewHealth)
     {
-        HealthSlider.value = curHealth / 1000f;
-        if (Health > curHealth)//new health is less = damaged not healed
+        float oldHealthValue = Health;
+        Health = NewHealth;
+        HealthSlider.value = NewHealth / 1000f;
+        if (oldHealthValue > NewHealth)//new health is less = damaged not healed
         {
             Debug.Log("EnteredSetCurHealthLoop");
-            HealthLossSliderCoroutine = StartCoroutine(GradualFloatSetHealthLossValue(Health, curHealth, -1f));// if damaged slowly lower the health loss bar to cur health
-            Health = curHealth;
+            lossBarDelayTimer = 0f;//reset the delay timer. do this whether or not co routine is already running
+            HealthLossSliderCoroutine = StartCoroutine(GradualFloatSetHealthLossValue(oldHealthValue, NewHealth , -1f));// if damaged slowly lower the health loss bar to cur health
+            
             //add a conditional w/ a timer to stop the coroutine if this method is called again before the co routine finishes - may cause issues otherwise
             //add a conditional to not trigger when setting max health
         }
         else
         {
             Debug.Log("entered the wrong loop in setcurhealth");
-            Health = curHealth;
             setHealthLossValue();//if healed, just set the health loss bar to the new health.
         }
 
@@ -300,34 +308,54 @@ public class Player : MonoBehaviour
 
     public IEnumerator GradualFloatSetHealthLossValue(float startValue, float endValue, float rateChange)//gradually lower the health loss bar to a target value
     {
-        Debug.Log("entered the coroutine");
-        //start with an int that constantly counts down and is reset to 5 when damage is taken only proceed once damage has not been taken for a few seconds NEEDS IMPLEMENTING
-        float curValue = startValue;
-        if (startValue < endValue & rateChange > 0)//if the goal end value is greater than the start value
+        if (readyforCoroutine)//prevents multiple coroutines running at the same time, that causes funky behavior
         {
-            while (curValue + rateChange < endValue)//increment by rate of change once every .01s until cur value is within one ratechange of end value
+            readyforCoroutine = false;
+            Debug.Log("entered the coroutine");
+            //start with an int that constantly counts down and is reset to 5 when damage is taken only proceed once damage has not been taken for a few seconds NEEDS IMPLEMENTING
+            float curValue = startValue;
+            if (startValue < Health & rateChange > 0)//if the goal end value is greater than the start value
             {
-                setHealthLossValue(curValue);
-                curValue += rateChange;
-                yield return new WaitForSeconds(.5f);
+                while (!(curValue + rateChange < Health))//increment by rate of change once every .01s until cur value is within one ratechange of end value
+                {
+                    if(lossBarDelayTimer > 2f)//adds delay, delay resets if damage is taken again
+                    { 
+                        setHealthLossValue(curValue);
+                        curValue += rateChange;
+                    }
+                    yield return new WaitForSeconds(.01f);
+                    
+                }
+                setHealthLossValue(Health);//round to end value
             }
-            setHealthLossValue(endValue);//round to end value
-        }
-        else if (startValue > endValue & rateChange < 0)//if the goal end value is less than the start value
-        {
-            Debug.Log("first loop entered");
-            while (!(curValue + rateChange < endValue))//increment by rate of change once ever hundredth of a second untilthe curValue is within one rateChange of the end value
+            else if (startValue > Health & rateChange < 0)//if the goal end value is less than the start value
             {
-                Debug.Log("second loop entered");
-                setHealthLossValue(curValue);
-                curValue += rateChange;
-                yield return new WaitForSeconds(.01f);
+                Debug.Log("first loop entered");
+                while (!(curValue + rateChange < Health))//increment by rate of change once ever hundredth of a second untilthe curValue is within one rateChange of the end value
+                {
+                    if(lossBarDelayTimer > 2f)//adds delay, delay resets if damage is taken again
+                    { 
+                        Debug.Log("second loop entered");
+                        setHealthLossValue(curValue);
+                        curValue += rateChange;
+                    }
+                        yield return new WaitForSeconds(.01f);
+                    
+                }
+                setHealthLossValue(Health);//round to end value
             }
-            setHealthLossValue(endValue);//round to end value
+            else
+                Debug.Log("invalid input Combo");//only accessible if rate change would take startValue away from endValue
+            readyforCoroutine = true;
         }
-        else
-            Debug.Log("invalid input Combo");//only accessible if rate change would take startValue away from endValue
     }
 
+    public void lossBarDelayTimerMeth()
+    {
+        if (lossBarDelayTimer < 5)
+        {
+            lossBarDelayTimer += Time.deltaTime;
+        }
+    }
 
 }
