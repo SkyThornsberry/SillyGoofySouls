@@ -351,6 +351,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 2525679971674701948, guid: f63a1e316d7992e49b5d8793827a8689, type: 3}
+      propertyPath: self
+      value: 
+      objectReference: {fileID: 756331467029790020}
+    - target: {fileID: 2525679971674701948, guid: f63a1e316d7992e49b5d8793827a8689, type: 3}
       propertyPath: healthBar
       value: 
       objectReference: {fileID: 6139385266963632869}
@@ -360,7 +364,7 @@ PrefabInstance:
       objectReference: {fileID: 6940071131637852819}
     - target: {fileID: 8256333284382444914, guid: f63a1e316d7992e49b5d8793827a8689, type: 3}
       propertyPath: m_Name
-      value: Enemy Variant
+      value: Enemy with Healthbar
       objectReference: {fileID: 0}
     - target: {fileID: 8529270064181999138, guid: f63a1e316d7992e49b5d8793827a8689, type: 3}
       propertyPath: m_LocalPosition.x
@@ -410,6 +414,11 @@ PrefabInstance:
       addedObject: {fileID: 7807674645557461914}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f63a1e316d7992e49b5d8793827a8689, type: 3}
+--- !u!1 &756331467029790020 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8256333284382444914, guid: f63a1e316d7992e49b5d8793827a8689, type: 3}
+  m_PrefabInstance: {fileID: 8713167952315887670}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1059869802982262292 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8529270064181999138, guid: f63a1e316d7992e49b5d8793827a8689, type: 3}

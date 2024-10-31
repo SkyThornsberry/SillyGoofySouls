@@ -6,6 +6,7 @@ using Unity.VisualScripting;
 using UnityEngine.UI;
 public class EnemyBase : MonoBehaviour
 {
+    public GameObject self;
     public float[] attackDamage;
     public string[] attackType;
     public float maxHealth;
@@ -33,8 +34,16 @@ public class EnemyBase : MonoBehaviour
     public void EnemyHurt(float damage, string Type)
     {
         //damage calcs
-        health -= damage;
+        if (health - damage <= 0)
+        {
+            health = 0;
+            EnemyDeath();
+        }
+        else
+            health -= damage;
         Debug.Log("Enemy Hurt: " + damage + ", " + Type);
+
+
         updateHealthBar();
         Invoke("updateHealthLossBar", 2);
     }
@@ -49,5 +58,11 @@ public class EnemyBase : MonoBehaviour
     {
         //set healthloss bar, the yellow bar behind the read health bar which remains after health is loss to display the amount lost
         healthLossBar.transform.localScale = new Vector3(health * 1f / maxHealth, healthBar.transform.localScale.y, healthBar.transform.localScale.z);
+    }
+
+    public void EnemyDeath()
+    {
+        //calculate drops, play death animation, and delete enemy
+        GameObject.Destroy(self);
     }
 }

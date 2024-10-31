@@ -12,6 +12,7 @@ public class Player : MonoBehaviour
     public Animator animator;
     
 
+
     //player stats
     public float Health =1000f;
     public float Stamina=1000f;
@@ -21,6 +22,10 @@ public class Player : MonoBehaviour
     public Slider StaminaSlider;
     public Slider MaxHealthSlider;
     public Slider MaxStaminaSlider;
+    public Slider HealthLossSlider;
+    public Slider StaminaLossSlider;
+    Coroutine HealthLossSliderCoroutine;
+    Coroutine StaminaLossSliderCoroutine;
 
 
     //movement vars
@@ -214,30 +219,115 @@ public class Player : MonoBehaviour
     void setCurHealth(float curHealth)
     {
         HealthSlider.value = curHealth / 1000f;
-        this.Health = curHealth;
+        if (Health > curHealth)//new health is less = damaged not healed
+        {
+            Debug.Log("EnteredSetCurHealthLoop");
+            HealthLossSliderCoroutine = StartCoroutine(GradualFloatSetHealthLossValue(Health, curHealth, -1f));// if damaged slowly lower the health loss bar to cur health
+            Health = curHealth;
+            //add a conditional w/ a timer to stop the coroutine if this method is called again before the co routine finishes - may cause issues otherwise
+            //add a conditional to not trigger when setting max health
+        }
+        else
+        {
+            Debug.Log("entered the wrong loop in setcurhealth");
+            Health = curHealth;
+            setHealthLossValue();//if healed, just set the health loss bar to the new health.
+        }
+
     }
 
     void setCurStam(float curStam)
     {
         StaminaSlider.value = curStam / 1000f;
+        Stamina = curStam;
+        Invoke("setStamLossValue", .5f);
+    }
+
+    void setHealthLossValue()//sets the health loss slider value to current health
+    {
+        HealthLossSlider.value = Health / 1000f;
+    }
+
+    void setStamLossValue()//sets the stamloss slider value to current stamina
+    {
+        StaminaLossSlider.value = Stamina / 1000f;
+    }
+
+    void setStamLossValue(float newStam)//sets stamina loss slider to a specified value
+    {
+        StaminaLossSlider.value = newStam / 1000f;
+    }
+
+    void setHealthLossValue(float newHealth)//sets the health loss slider to a specified float
+    {
+        HealthLossSlider.value = newHealth / 1000f;
     }
 
     public void playerHurt(float dmg, string type)
     {
         //do damage calculations based off defenses and stuff, + do any visual/ audio indicators
-        Health = Health - dmg;
-        setCurHealth(Health);
+        //Health = Health - dmg;
+        setCurHealth(Health -dmg);
     }
 
-    /*private void OnTriggerEnter(Collider other)
+    public IEnumerator GradualFloatSetStamLossValue(float startValue, float endValue, float rateChange)//gradually lower the stam loss bar to a target value
     {
-        Player p = other.GetComponent<Player>();
-
-        if (p != null)
+        //start with an int that constantly counts down and is reset to 5 when damage is taken only proceed once damage has not been taken for a few seconds NEEDS IMPLEMENTING
+        float curValue = startValue;
+        if (startValue < endValue & rateChange > 0)//if the goal end value is greater than the start value
         {
-            Player.playerHurt(50f, "physical");
+            while (curValue + rateChange < endValue)//increment by rate of change once every .01s until cur value is within one ratechange of end value
+            {
+                setStamLossValue(curValue);
+                curValue += rateChange;
+                yield return new WaitForSeconds(.01f);
+            }
+            setStamLossValue(endValue);//round to end value
         }
+        else if (startValue > endValue & rateChange < 0)//if the goal end value is less than the start value
+        {
+            while (curValue + rateChange < endValue)//increment by rate of change once ever hundredth of a second untilthe curValue is within one rateChange of the end value
+            {
+                setStamLossValue(curValue);
+                curValue += rateChange;
+                yield return new WaitForSeconds(.01f);
+            }
+            setStamLossValue(endValue);//round to end value
+        }
+        else
+            Debug.Log("invalid input Combo");//only accessible if rate change would take startValue away from endValue
+    }
 
-    }*/
+    public IEnumerator GradualFloatSetHealthLossValue(float startValue, float endValue, float rateChange)//gradually lower the health loss bar to a target value
+    {
+        Debug.Log("entered the coroutine");
+        //start with an int that constantly counts down and is reset to 5 when damage is taken only proceed once damage has not been taken for a few seconds NEEDS IMPLEMENTING
+        float curValue = startValue;
+        if (startValue < endValue & rateChange > 0)//if the goal end value is greater than the start value
+        {
+            while (curValue + rateChange < endValue)//increment by rate of change once every .01s until cur value is within one ratechange of end value
+            {
+                setHealthLossValue(curValue);
+                curValue += rateChange;
+                yield return new WaitForSeconds(.5f);
+            }
+            setHealthLossValue(endValue);//round to end value
+        }
+        else if (startValue > endValue & rateChange < 0)//if the goal end value is less than the start value
+        {
+            Debug.Log("first loop entered");
+            while (!(curValue + rateChange < endValue))//increment by rate of change once ever hundredth of a second untilthe curValue is within one rateChange of the end value
+            {
+                Debug.Log("second loop entered");
+                setHealthLossValue(curValue);
+                curValue += rateChange;
+                yield return new WaitForSeconds(.01f);
+            }
+            setHealthLossValue(endValue);//round to end value
+        }
+        else
+            Debug.Log("invalid input Combo");//only accessible if rate change would take startValue away from endValue
+    }
+
 
 }
