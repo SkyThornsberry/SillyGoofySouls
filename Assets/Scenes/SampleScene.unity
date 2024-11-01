@@ -669,7 +669,7 @@ MonoBehaviour:
   m_MinValue: 0
   m_MaxValue: 1
   m_WholeNumbers: 0
-  m_Value: 0.5
+  m_Value: 0.496
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -1095,14 +1095,16 @@ MonoBehaviour:
   animator: {fileID: 0}
   Health: 1000
   Stamina: 1000
-  MaxHealth: 0
-  MaxStamina: 0
   HealthSlider: {fileID: 832053661}
   StaminaSlider: {fileID: 794935397}
   MaxHealthSlider: {fileID: 1642074511}
   MaxStaminaSlider: {fileID: 1023999965}
   HealthLossSlider: {fileID: 1102268215}
   StaminaLossSlider: {fileID: 1214982493}
+  lossBarDelayTimer: 0
+  lossBarDelayTimerStam: 0
+  stamRegen: 65
+  stamRegenDelayTimer: 0
   speed: 175
   jumpForce: 8.8
   groundDrag: 20
@@ -1689,7 +1691,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.49056602, g: 0.0023139962, b: 0.0023139962, a: 1}
+  m_Color: {r: 0.9150943, g: 0.09064613, b: 0.4737434, a: 0.90588236}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1904,7 +1906,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.114060596, g: 0.16037738, b: 0.003782485, a: 1}
+  m_Color: {r: 0.032840855, g: 0.7735849, b: 0.03841846, a: 0.8156863}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

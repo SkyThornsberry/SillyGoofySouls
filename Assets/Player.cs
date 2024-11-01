@@ -16,8 +16,8 @@ public class Player : MonoBehaviour
     //player stats
     public float Health =1000f;
     public float Stamina=1000f;
-    public float MaxHealth = 350;
-    public float MaxStamina = 225;
+     float MaxHealth = 500;
+     float MaxStamina = 400;
 
     //health/stam bar hud control
     public Slider HealthSlider;
@@ -30,7 +30,12 @@ public class Player : MonoBehaviour
     Coroutine StaminaLossSliderCoroutine;
     bool readyforCoroutine = true;
     public float lossBarDelayTimer = 0f;
-
+    public float lossBarDelayTimerStam = 0f;
+    bool stamReadyForCoroutine = true;
+    bool maxHealthChanging = false;
+    bool maxStamChanging = false;
+    public float stamRegen = 65f;
+    public float stamRegenDelayTimer = 0f;
 
     //movement vars
     public float speed = 175f;
@@ -59,8 +64,8 @@ public class Player : MonoBehaviour
         playerRigBod = body.GetComponent<Rigidbody>();
         maxSlopeAngle = 40f;
 
-        MaxHealth = 200f;
-        MaxStamina = 150f;
+        /*MaxHealth = 500;
+        MaxStamina = 400f;*/
         setMaxHealth(MaxHealth);
         setMaxStam(MaxStamina);
         
@@ -90,8 +95,9 @@ public class Player : MonoBehaviour
             
         }
 
-        lossBarDelayTimerMeth();
-
+        DelayTimersMeth();
+        staminaRegen();
+        
     }
 
     void FixedUpdate() {
@@ -183,9 +189,14 @@ public class Player : MonoBehaviour
 
     void Jump()
     {
-        playerRigBod.linearVelocity = new Vector3(playerRigBod.linearVelocity.x, 0f, playerRigBod.linearVelocity.z);
-        playerRigBod.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-        playerRigBod.AddForce(body.transform.right * jumpForce, ForceMode.Impulse);
+        if(Stamina >= 50f)
+        {
+            playerRigBod.linearVelocity = new Vector3(playerRigBod.linearVelocity.x, 0f, playerRigBod.linearVelocity.z);
+            playerRigBod.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+            playerRigBod.AddForce(body.transform.right * jumpForce, ForceMode.Impulse);
+            setCurStam(Stamina - 50f);
+        }
+        
     }
 
     private bool onSlope()
@@ -210,16 +221,22 @@ public class Player : MonoBehaviour
 
     void setMaxHealth(float maxHealth)
     {
-        MaxHealthSlider.value = (maxHealth > 995) ? maxHealth/ 1000f : (maxHealth/1000f)+.005f; //little extra wiggle room so that the fill doesnt overflow the bar
+        maxHealthChanging = true;
+        MaxHealthSlider.value = (maxHealth < 300) ? maxHealth/ 1000f + 005f: ( (maxHealth<650) ? (maxHealth/1000f)+.0025f : maxHealth/1000f +0f ); //little extra wiggle room so that the fill doesnt overflow the bar 1000-995 = +0, 995-400 = +.005, 400-0 = + 0.0025
         if (Health > maxHealth)
             setCurHealth(maxHealth);
+        setHealthLossValue();
+        maxHealthChanging = false;
     }
 
     void setMaxStam(float maxStam)
     {
-        MaxStaminaSlider.value = (maxStam > 995) ? maxStam / 1000f : maxStam/1000f + .005f; //little extra wiggle room so that the fill doesnt overflow the bar
+        maxStamChanging = true;
+        MaxStaminaSlider.value = (maxStam < 300) ? maxStam / 1000f + 005f : ((maxStam < 650) ? (maxStam / 1000f) + .0025f : maxStam / 1000f + 0f); //little extra wiggle room so that the fill doesnt overflow the bar
         if (Stamina > maxStam)
             setCurStam(maxStam);
+        setStamLossValue();
+        maxStamChanging = false;
     }
 
     void setCurHealth(float NewHealth)
@@ -227,28 +244,40 @@ public class Player : MonoBehaviour
         float oldHealthValue = Health;
         Health = NewHealth;
         HealthSlider.value = NewHealth / 1000f;
-        if (oldHealthValue > NewHealth)//new health is less = damaged not healed
+        if (oldHealthValue > NewHealth & !maxHealthChanging)//new health is less = damaged not healed
         {
-            Debug.Log("EnteredSetCurHealthLoop");
+            
             lossBarDelayTimer = 0f;//reset the delay timer. do this whether or not co routine is already running
-            HealthLossSliderCoroutine = StartCoroutine(GradualFloatSetHealthLossValue(oldHealthValue, NewHealth , -1f));// if damaged slowly lower the health loss bar to cur health
+            HealthLossSliderCoroutine = StartCoroutine(GradualFloatSetHealthLossValue(oldHealthValue, NewHealth , -2.5f));// if damaged slowly lower the health loss bar to cur health
             
             //add a conditional w/ a timer to stop the coroutine if this method is called again before the co routine finishes - may cause issues otherwise
             //add a conditional to not trigger when setting max health
         }
         else
         {
-            Debug.Log("entered the wrong loop in setcurhealth");
+            
             setHealthLossValue();//if healed, just set the health loss bar to the new health.
         }
 
     }
 
-    void setCurStam(float curStam)
+    void setCurStam(float newStam)
     {
-        StaminaSlider.value = curStam / 1000f;
-        Stamina = curStam;
-        Invoke("setStamLossValue", .5f);
+        float oldStamValue = Stamina;
+        Stamina = newStam;
+        StaminaSlider.value = newStam / 1000f;
+        if (oldStamValue > newStam & !maxStamChanging)//new stam is less = damaged not healed, dont activate coroutine if setting max stam either
+        {
+            Debug.Log("EnteredSetCurStamIf");
+            lossBarDelayTimerStam = 0f;//reset the delay timer. do this whether or not co routine is already running
+            stamRegenDelayTimer = 0f;//reset the delay timer for stamina regen
+            StaminaLossSliderCoroutine = StartCoroutine(GradualFloatSetStamLossValue(oldStamValue, newStam, -2.5f));// if damaged slowly lower the health loss bar to cur health
+        }
+        else
+        {
+            
+            //setStamLossValue();//if healed, just set the health loss bar to the new health.
+        }
     }
 
     void setHealthLossValue()//sets the health loss slider value to current health
@@ -278,47 +307,66 @@ public class Player : MonoBehaviour
         setCurHealth(Health -dmg);
     }
 
-    public IEnumerator GradualFloatSetStamLossValue(float startValue, float endValue, float rateChange)//gradually lower the stam loss bar to a target value
+    public IEnumerator GradualFloatSetStamLossValue(float startValue, float endValue, float rateChange)//gradually lower the health loss bar to a target value
     {
-        //start with an int that constantly counts down and is reset to 5 when damage is taken only proceed once damage has not been taken for a few seconds NEEDS IMPLEMENTING
-        float curValue = startValue;
-        if (startValue < endValue & rateChange > 0)//if the goal end value is greater than the start value
+        if (stamReadyForCoroutine)//prevents multiple coroutines running at the same time, that causes funky behavior
         {
-            while (curValue + rateChange < endValue)//increment by rate of change once every .01s until cur value is within one ratechange of end value
+            setStamLossValue(startValue);
+            stamReadyForCoroutine = false;
+            Debug.Log("entered the coroutine");
+            //start with an int that constantly counts down and is reset to 5 when damage is taken only proceed once damage has not been taken for a few seconds NEEDS IMPLEMENTING
+            float curValue = startValue;
+            if (startValue < Stamina & rateChange > 0)//if the goal end value is greater than the start value
             {
-                setStamLossValue(curValue);
-                curValue += rateChange;
-                yield return new WaitForSeconds(.01f);
+                while (!(curValue + rateChange < Stamina))//increment by rate of change once every .01s until cur value is within one ratechange of end value
+                {
+                    if (lossBarDelayTimerStam > 1.25f)//adds delay, delay resets if damage is taken again
+                    {
+                        setStamLossValue(curValue);
+                        curValue += rateChange;
+                    }
+                    yield return new WaitForSeconds(.01f);
+
+                }
+                setStamLossValue(Stamina);//round to end value
             }
-            setStamLossValue(endValue);//round to end value
-        }
-        else if (startValue > endValue & rateChange < 0)//if the goal end value is less than the start value
-        {
-            while (curValue + rateChange < endValue)//increment by rate of change once ever hundredth of a second untilthe curValue is within one rateChange of the end value
+            else if (startValue > Stamina & rateChange < 0)//if the goal end value is less than the start value
             {
-                setStamLossValue(curValue);
-                curValue += rateChange;
-                yield return new WaitForSeconds(.01f);
+                Debug.Log("first loop entered");
+                while (!(curValue + rateChange < Stamina))//increment by rate of change once ever hundredth of a second untilthe curValue is within one rateChange of the end value
+                {
+                    if (lossBarDelayTimerStam > 1.25f)//adds delay, delay resets if damage is taken again
+                    {
+                        Debug.Log("second loop entered");
+                        setStamLossValue(curValue);
+                        curValue += rateChange;
+                    }
+                    yield return new WaitForSeconds(.01f);
+
+                }
+                Debug.Log("coroutine end-setting stam to " + Stamina);
+                setStamLossValue(Stamina);//round to end value
+                
             }
-            setStamLossValue(endValue);//round to end value
+            else
+                Debug.Log("invalid input Combo");//only accessible if rate change would take startValue away from endValue
+            stamReadyForCoroutine = true;
         }
-        else
-            Debug.Log("invalid input Combo");//only accessible if rate change would take startValue away from endValue
     }
 
     public IEnumerator GradualFloatSetHealthLossValue(float startValue, float endValue, float rateChange)//gradually lower the health loss bar to a target value
     {
         if (readyforCoroutine)//prevents multiple coroutines running at the same time, that causes funky behavior
         {
+            setHealthLossValue(startValue);
             readyforCoroutine = false;
-            Debug.Log("entered the coroutine");
             //start with an int that constantly counts down and is reset to 5 when damage is taken only proceed once damage has not been taken for a few seconds NEEDS IMPLEMENTING
             float curValue = startValue;
             if (startValue < Health & rateChange > 0)//if the goal end value is greater than the start value
             {
                 while (!(curValue + rateChange < Health))//increment by rate of change once every .01s until cur value is within one ratechange of end value
                 {
-                    if(lossBarDelayTimer > 2f)//adds delay, delay resets if damage is taken again
+                    if(lossBarDelayTimer > 1.25f)//adds delay, delay resets if damage is taken again
                     { 
                         setHealthLossValue(curValue);
                         curValue += rateChange;
@@ -330,12 +378,10 @@ public class Player : MonoBehaviour
             }
             else if (startValue > Health & rateChange < 0)//if the goal end value is less than the start value
             {
-                Debug.Log("first loop entered");
                 while (!(curValue + rateChange < Health))//increment by rate of change once ever hundredth of a second untilthe curValue is within one rateChange of the end value
                 {
-                    if(lossBarDelayTimer > 2f)//adds delay, delay resets if damage is taken again
+                    if(lossBarDelayTimer > 1.25f)//adds delay, delay resets if damage is taken again
                     { 
-                        Debug.Log("second loop entered");
                         setHealthLossValue(curValue);
                         curValue += rateChange;
                     }
@@ -350,11 +396,32 @@ public class Player : MonoBehaviour
         }
     }
 
-    public void lossBarDelayTimerMeth()
+    public void DelayTimersMeth()
     {
         if (lossBarDelayTimer < 5)
         {
             lossBarDelayTimer += Time.deltaTime;
+        }
+        if(lossBarDelayTimerStam < 5)
+        {
+            lossBarDelayTimerStam += Time.deltaTime;
+        }
+        if (stamRegenDelayTimer < 5)
+        {
+            stamRegenDelayTimer += Time.deltaTime;
+        }
+    }
+
+    public void staminaRegen()
+    {
+        if(Stamina + Time.deltaTime * stamRegen < MaxStamina & stamRegenDelayTimer > 1.75f)
+        {
+            setCurStam(Stamina += Time.deltaTime * stamRegen);
+
+        }
+        else if( Stamina < MaxStamina & Stamina + Time.deltaTime * stamRegen > MaxStamina & stamRegenDelayTimer > 1.75f)
+        {
+            setCurStam(MaxStamina);
         }
     }
 
